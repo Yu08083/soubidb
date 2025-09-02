@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>装備検索ツール</title>
+<style>
+  body { font-family: 'Arial', sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
+  h1 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
+  .search-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+  input, select, button { padding: 8px 12px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
+  button { background: #3498db; color: white; border: none; cursor: pointer; }
+  button:hover { background: #2980b9; }
+  table { border-collapse: collapse; width: 100%; max-width: 1000px; margin: 0 auto; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+  th { background: #ecf0f1; }
+  tr:nth-child(even) { background: #f9f9f9; }
+  .no-results { text-align: center; color: #e74c3c; }
+  @media (max-width: 600px) { .search-container { flex-direction: column; align-items: stretch; } input, select, button { width: 100%; } }
+</style>
+</head>
+<body>
+
+<h1>装備検索ツール</h1>
+
+<div class="search-container">
+  <input type="text" id="searchName" placeholder="装備名で検索">
+  <input type="text" id="searchEffect" placeholder="効果で検索">
+  <select id="searchRarity">
+    <option value="">レアリティで検索</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+  </select>
+  <label><input type="checkbox" id="fuzzyMode"> あいまい検索</label>
+  <button id="searchBtn">検索</button>
+</div>
+
+<table id="resultTable">
+  <thead>
+    <tr>
+      <th>装備名</th>
+      <th>効果</th>
+      <th>レアリティ</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="3" class="no-results">検索結果がありません</td></tr>
+  </tbody>
+</table>
+
+<script>
+const jsonUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/items.json";
+let items = [];
+
+// JSON 読み込み
+fetch(jsonUrl)
+  .then(response => response.json())
+  .then(data => { items = data; searchItems(); })
+  .catch(err => console.error("JSON読み込み失敗", err));
+
+function searchItems() {
+  const nameQuery = document.getElementById('searchName').value.toLowerCase();
+  const effectQuery = document.getElementById('searchEffect').value.toLowerCase();
+  const rarityQuery = document.getElementById('searchRarity').value;
+  const fuzzy = document.getElementById('fuzzyMode').checked;
+
+  const filtered = items.filter(item => {
+    const nameText = item.name.toLowerCase();
+    const effectText = item.effect.join(", ").toLowerCase();
+    const nameMatch = !nameQuery || (fuzzy ? nameText.includes(nameQuery) : nameText === nameQuery);
+    const effectMatch = !effectQuery || (fuzzy ? effectText.includes(effectQuery) : item.effect.some(e => e.toLowerCase() === effectQuery));
+    const rarityMatch = !rarityQuery || item.rarity == rarityQuery;
+    return nameMatch && effectMatch && rarityMatch;
+  });
+
+  const tbody = document.querySelector('#resultTable tbody');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="no-results">該当する装備はありません</td></tr>';
+  } else {
+    filtered.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${item.name}</td><td>${item.effect.join(", ")}</td><td>${item.rarity}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+// イベント
+document.getElementById('searchBtn').addEventListener('click', searchItems);
+document.getElementById('searchName').addEventListener('keyup', e => e.key === 'Enter' && searchItems());
+document.getElementById('searchEffect').addEventListener('keyup', e => e.key === 'Enter' && searchItems());
+document.getElementById('searchRarity').addEventListener('change', searchItems);
+document.getElementById('fuzzyMode').addEventListener('change', searchItems);
+</script>
+
+</body>
+</html>
