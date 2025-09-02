@@ -5,18 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>装備検索ツール</title>
 <style>
-  body { font-family: 'Arial', sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
-  h1 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
-  .search-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-  input, select, button { padding: 8px 12px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
-  button { background: #3498db; color: white; border: none; cursor: pointer; }
-  button:hover { background: #2980b9; }
-  table { border-collapse: collapse; width: 100%; max-width: 1000px; margin: 0 auto; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-  th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-  th { background: #ecf0f1; }
-  tr:nth-child(even) { background: #f9f9f9; }
-  .no-results { text-align: center; color: #e74c3c; }
-  @media (max-width: 600px) { .search-container { flex-direction: column; align-items: stretch; } input, select, button { width: 100%; } }
+body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;padding:20px;color:#333;}
+h1{text-align:center;margin-bottom:20px;color:#2c3e50;}
+.search-container{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;}
+input,select,button{padding:8px 12px;font-size:14px;border-radius:5px;border:1px solid #ccc;}
+button{cursor:pointer;}
+button#searchBtn{background:#3498db;color:white;border:none;}
+button#searchBtn:hover{background:#2980b9;}
+button#clearBtn{background:#e74c3c;color:white;border:none;}
+button#clearBtn:hover{background:#c0392b;}
+table{border-collapse:collapse;width:100%;max-width:1000px;margin:0 auto;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+th,td{border:1px solid #ddd;padding:10px;text-align:left;vertical-align:top;}
+th{background:#ecf0f1;}
+tr:nth-child(even){background:#f9f9f9;}
+td.effect-cell br{line-height:1.5em;}
+.no-results{text-align:center;color:#e74c3c;}
+@media(max-width:600px){.search-container{flex-direction:column;align-items:stretch;}input,select,button{width:100%;}}
 </style>
 </head>
 <body>
@@ -34,69 +38,129 @@
     <option value="4">4</option>
     <option value="5">5</option>
   </select>
-  <label><input type="checkbox" id="fuzzyMode"> あいまい検索</label>
+  <select id="match">
+    <option value="partial">部分一致</option>
+    <option value="exact">完全一致</option>
+  </select>
   <button id="searchBtn">検索</button>
+  <button id="clearBtn">クリア</button>
+</div>
+
+<div style="text-align:center; margin-bottom:15px;">
+<label><input type="checkbox" id="showAllMode"> 検索前に一覧表示</label>
 </div>
 
 <table id="resultTable">
-  <thead>
-    <tr>
-      <th>装備名</th>
-      <th>効果</th>
-      <th>レアリティ</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td colspan="3" class="no-results">検索結果がありません</td></tr>
-  </tbody>
+<thead>
+<tr>
+<th>装備名</th>
+<th>効果</th>
+<th>レアリティ</th>
+</tr>
+</thead>
+<tbody>
+<tr><td colspan="3" class="no-results">検索してください</td></tr>
+</tbody>
 </table>
 
 <script>
-const jsonUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/items.json";
 let items = [];
+const tbody = document.querySelector('#resultTable tbody');
 
-// JSON 読み込み
+const searchBtn = document.getElementById('searchBtn');
+const clearBtn = document.getElementById('clearBtn');
+const searchName = document.getElementById('searchName');
+const searchEffect = document.getElementById('searchEffect');
+const searchRarity = document.getElementById('searchRarity');
+const matchSel = document.getElementById('match');
+const showAllMode = document.getElementById('showAllMode');
+
+const jsonUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/items.json";
+
+// JSON読み込み
 fetch(jsonUrl)
-  .then(response => response.json())
-  .then(data => { items = data; searchItems(); })
-  .catch(err => console.error("JSON読み込み失敗", err));
+  .then(res => res.json())
+  .then(data => {
+    items = data;
+    if(showAllMode.checked) renderTable(items);
+  })
+  .catch(err => {
+    console.error("JSON読み込み失敗", err);
+    tbody.innerHTML = '<tr><td colspan="3" class="no-results">JSON読み込み失敗</td></tr>';
+  });
 
+// 文字列正規化
+function normalizeStr(str){
+  return str ? str.toString().normalize("NFKC").trim() : '';
+}
+
+// 一致判定
+function matches(value, query, mode){
+  if(!query) return false;
+  const v = normalizeStr(value);
+  query = normalizeStr(query);
+  if(mode === 'partial') return v.includes(query);
+  if(mode === 'exact') return v === query;
+  return false;
+}
+
+// 検索処理
 function searchItems() {
-  const nameQuery = document.getElementById('searchName').value.toLowerCase();
-  const effectQuery = document.getElementById('searchEffect').value.toLowerCase();
-  const rarityQuery = document.getElementById('searchRarity').value;
-  const fuzzy = document.getElementById('fuzzyMode').checked;
+  if(!items || items.length===0){
+    alert("まだデータ読み込み中です。");
+    return;
+  }
+  const nameQuery = searchName.value;
+  const effectQuery = searchEffect.value;
+  const rarityQuery = searchRarity.value;
+  const matchMode = matchSel.value;
 
   const filtered = items.filter(item => {
-    const nameText = item.name.toLowerCase();
-    const effectText = item.effect.join(", ").toLowerCase();
-    const nameMatch = !nameQuery || (fuzzy ? nameText.includes(nameQuery) : nameText === nameQuery);
-    const effectMatch = !effectQuery || (fuzzy ? effectText.includes(effectQuery) : item.effect.some(e => e.toLowerCase() === effectQuery));
+    const nameMatch = !nameQuery || matches(item.name, nameQuery, matchMode);
+    const effectMatch = !effectQuery || item.effect.some(e => matches(e, effectQuery, matchMode));
     const rarityMatch = !rarityQuery || item.rarity == rarityQuery;
     return nameMatch && effectMatch && rarityMatch;
   });
 
-  const tbody = document.querySelector('#resultTable tbody');
-  tbody.innerHTML = '';
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="no-results">該当する装備はありません</td></tr>';
-  } else {
-    filtered.forEach(item => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${item.name}</td><td>${item.effect.join(", ")}</td><td>${item.rarity}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
+  renderTable(filtered);
 }
 
-// イベント
-document.getElementById('searchBtn').addEventListener('click', searchItems);
-document.getElementById('searchName').addEventListener('keyup', e => e.key === 'Enter' && searchItems());
-document.getElementById('searchEffect').addEventListener('keyup', e => e.key === 'Enter' && searchItems());
-document.getElementById('searchRarity').addEventListener('change', searchItems);
-document.getElementById('fuzzyMode').addEventListener('change', searchItems);
+// テーブル描画
+function renderTable(data){
+  tbody.innerHTML = '';
+  if(data.length===0){
+    tbody.innerHTML = '<tr><td colspan="3" class="no-results">該当する装備はありません</td></tr>';
+    return;
+  }
+  data.forEach(item=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.name}</td>
+      <td class="effect-cell">${item.effect.join("<br>")}</td>
+      <td style="text-align:center;">${item.rarity}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// イベント登録
+searchBtn.addEventListener('click', searchItems);
+
+// クリアボタン
+clearBtn.addEventListener('click', ()=>{
+  searchName.value = '';
+  searchEffect.value = '';
+  searchRarity.value = '';
+  tbody.innerHTML='<tr><td colspan="3" class="no-results">検索してください</td></tr>';
+});
+
+// 一覧表示モード切替
+showAllMode.addEventListener('change', ()=>{
+  if(showAllMode.checked) renderTable(items);
+  else tbody.innerHTML='<tr><td colspan="3" class="no-results">検索してください</td></tr>';
+});
 </script>
 
 </body>
 </html>
+
