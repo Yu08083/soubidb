@@ -15,7 +15,7 @@ button#searchBtn:hover{background:#2980b9;}
 button#clearBtn{background:#e74c3c;color:white;border:none;}
 button#clearBtn:hover{background:#c0392b;}
 table{border-collapse:collapse;width:100%;max-width:1000px;margin:0 auto;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-th,td{border:1px solid #ddd;padding:10px;text-align:left;vertical-align:top;}
+th,td{border:1px solid #ddd;padding:10px;text-align:left;vertical-align:top;word-break:break-word;}
 th{background:#ecf0f1;}
 tr:nth-child(even){background:#f9f9f9;}
 td.effect-cell br{line-height:1.5em;}
@@ -27,6 +27,8 @@ td.part-cell, th.part-cell { text-align:center; width:80px; }
   .search-container{flex-direction:column;align-items:stretch; gap:8px;}
   input#searchName, input#searchEffect { width:calc(100% - 20px); max-width:300px; margin:0 auto; }
   select, button, input#searchPart, input#searchRarity { width:100%; }
+  /* 装備名列を折り返す */
+  td:first-child, th:first-child { max-width:150px; }
 }
 </style>
 </head>
@@ -190,6 +192,8 @@ showAllMode.addEventListener('change', ()=>{
 
 </body>
 </html>
+
+
 
 
 
