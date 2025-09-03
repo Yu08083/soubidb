@@ -22,7 +22,12 @@ td.effect-cell br{line-height:1.5em;}
 td.rarity-cell, th.rarity-cell { width:50px; text-align:center; padding:5px; }
 td.part-cell, th.part-cell { text-align:center; width:80px; }
 .no-results{text-align:center;color:#e74c3c;}
-@media(max-width:600px){.search-container{flex-direction:column;align-items:stretch;}input,select,button{width:100%;}}
+/* スマホ表示用 */
+@media(max-width:600px){
+  .search-container{flex-direction:column;align-items:stretch; gap:8px;}
+  input#searchName, input#searchEffect { width:calc(100% - 20px); max-width:300px; margin:0 auto; }
+  select, button, input#searchPart, input#searchRarity { width:100%; }
+}
 </style>
 </head>
 <body>
@@ -186,7 +191,6 @@ showAllMode.addEventListener('change', ()=>{
 </body>
 </html>
 
-</body>
-</html>
+
 
 
