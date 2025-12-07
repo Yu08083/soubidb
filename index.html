@@ -4,83 +4,412 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>装備検索ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
 <style>
-body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;padding:20px;color:#333;}
-h1{text-align:center;margin-bottom:20px;color:#2c3e50;}
-.search-container{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;}
-input,select,button{padding:8px 12px;font-size:14px;border-radius:5px;border:1px solid #ccc;}
-button{cursor:pointer;}
-button#searchBtn{background:#3498db;color:white;border:none;}
-button#searchBtn:hover{background:#2980b9;}
-button#clearBtn{background:#e74c3c;color:white;border:none;}
-button#clearBtn:hover{background:#c0392b;}
-table{border-collapse:collapse;width:100%;max-width:1000px;margin:0 auto;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-th,td{border:1px solid #ddd;padding:10px;text-align:left;vertical-align:top;word-break:break-word;}
-th{background:#ecf0f1;}
-tr:nth-child(even){background:#f9f9f9;}
-td.effect-cell br{line-height:1.5em;}
-td.rarity-cell, th.rarity-cell { width:50px; text-align:center; padding:5px; }
-td.part-cell, th.part-cell { text-align:center; width:80px; }
-.no-results{text-align:center;color:#e74c3c;}
-/* スマホ表示用 */
-@media(max-width:600px){
-  .search-container{flex-direction:column;align-items:stretch; gap:8px;}
-  input#searchName, input#searchEffect { width:calc(100% - 20px); max-width:300px; margin:0 auto; }
-  select, button, input#searchPart, input#searchRarity { width:100%; }
-  /* 装備名列を折り返す */
-  td:first-child, th:first-child { max-width:150px; }
-}
+  :root {
+    --primary-color: #0ea5e9;
+    --primary-dark: #0284c7;
+    --primary-light: #e0f2fe;
+    --accent-color: #38bdf8;
+    
+    --bg-gradient: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);
+    --card-bg: #ffffff;
+    
+    --text-main: #334155;
+    --text-sub: #64748b;
+    --border-color: #bae6fd;
+    
+    --radius: 8px;
+    --shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06);
+
+    --r-bronze: linear-gradient(135deg, #d97706, #b45309);
+    --r-silver: linear-gradient(135deg, #94a3b8, #64748b);
+    --r-gold:   linear-gradient(135deg, #eab308, #ca8a04);
+  }
+
+  body {
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-y: scroll;
+  }
+
+  #login-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(240, 249, 255, 0.95);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+  }
+  
+  .login-box {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 25px -5px rgba(14, 165, 233, 0.15);
+    text-align: center;
+    width: 90%;
+    max-width: 360px;
+    border: 1px solid var(--border-color);
+  }
+
+  .login-box h2 {
+    margin: 0 0 15px;
+    color: var(--primary-dark);
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  #main-content {
+    display: none;
+    width: 100%;
+    max-width: 1000px;
+    padding: 30px 20px;
+    box-sizing: border-box;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  h1 {
+    text-align: center;
+    color: var(--primary-dark);
+    font-weight: 800;
+    font-size: 2.2rem;
+    margin: 10px 0 30px;
+    letter-spacing: 0.05em;
+  }
+  
+  h1 span { color: var(--accent-color); }
+
+  .search-card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid white;
+    margin-bottom: 30px;
+  }
+
+  .search-container {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 15px;
+  }
+
+  .span-6 { grid-column: span 6; }
+  .span-3 { grid-column: span 3; }
+  .span-2 { grid-column: span 2; }
+  .span-btn { grid-column: span 2; }
+
+  @media (max-width: 768px) {
+    .span-6, .span-3, .span-2, .span-btn { grid-column: span 12; }
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: var(--text-main);
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    outline: none;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  #searchBtn, #loginBtn {
+    background: var(--primary-color);
+    color: white;
+  }
+  #searchBtn:hover, #loginBtn:hover {
+    background: var(--primary-dark);
+  }
+
+  #clearBtn {
+    background: white;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+  }
+  #clearBtn:hover {
+    background: #fef2f2;
+  }
+
+  .options {
+    margin-top: 15px;
+    text-align: right;
+    font-size: 0.9rem;
+    color: var(--text-sub);
+  }
+  .options label { cursor: pointer; display: inline-flex; align-items: center; }
+  .options input { width: auto; margin-right: 6px; }
+
+  .table-container {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid white;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+  }
+
+  thead {
+    background: var(--primary-light);
+    border-bottom: 2px solid #bae6fd;
+  }
+
+  th {
+    padding: 15px 20px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--primary-dark);
+    font-size: 0.95rem;
+  }
+
+  td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+    color: var(--text-main);
+    font-size: 0.95rem;
+  }
+
+  tr:hover { background-color: #f8fafc; }
+  tr:last-child td { border-bottom: none; }
+
+  .item-name { 
+    font-weight: 700; 
+    font-size: 1rem; 
+    color: var(--primary-dark); 
+  }
+  
+  .effect-cell { 
+    line-height: 1.6; 
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: white;
+    min-width: 50px;
+    text-align: center;
+  }
+
+  .r-bronze { background: var(--r-bronze); }
+  .r-silver { background: var(--r-silver); }
+  .r-gold   { background: var(--r-gold); }
+
+  .mobile-meta { display: none; }
+
+  .no-results {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-sub);
+    font-weight: 500;
+  }
+
+  #login-error {
+    color: #ef4444;
+    margin-top: 15px;
+    font-weight: bold;
+    min-height: 1.2em;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 700px) {
+    #main-content { padding: 20px 15px; }
+    .search-card { padding: 20px; }
+    
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    
+    .table-container { background: transparent; box-shadow: none; border: none; }
+    
+    tr {
+      background: var(--card-bg);
+      margin-bottom: 15px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid #e2e8f0;
+      padding: 15px 15px 15px 20px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInCard 0.3s ease backwards;
+    }
+
+    tr::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 5px;
+    }
+    tr[data-rarity="1"]::before, tr[data-rarity="2"]::before { background: var(--r-bronze); }
+    tr[data-rarity="3"]::before, tr[data-rarity="4"]::before { background: var(--r-silver); }
+    tr[data-rarity="5"]::before { background: var(--r-gold); }
+
+    td {
+      padding: 5px 0;
+      border: none;
+      display: block;
+    }
+
+    .item-name {
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mobile-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .mobile-part {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    td.rarity-cell, td.part-cell { display: none; }
+  }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeInCard { from { opacity: 0; } to { opacity: 1; } }
+
 </style>
 </head>
 <body>
 
-<h1>装備検索ツール</h1>
-
-<div class="search-container">
-  <input type="text" id="searchName" placeholder="装備名で検索">
-  <input type="text" id="searchEffect" placeholder="効果で検索">
-  <select id="searchPart">
-    <option value="">部位で検索</option>
-  </select>
-  <select id="searchRarity">
-    <option value="">レアリティで検索</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-  </select>
-  <select id="match">
-    <option value="partial">部分一致</option>
-    <option value="exact">完全一致</option>
-  </select>
-  <button id="searchBtn">検索</button>
-  <button id="clearBtn">クリア</button>
+<div id="login-overlay">
+  <div class="login-box">
+    <h2>Access</h2>
+    <p style="color:#64748b; font-size:0.9rem; margin-bottom:20px;">パスワードを入力してください</p>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button id="loginBtn">ログイン</button>
+    <div id="login-error"></div>
+  </div>
 </div>
 
-<div style="text-align:center; margin-bottom:15px;">
-<label><input type="checkbox" id="showAllMode"> 検索前に一覧表示</label>
-</div>
+<div id="main-content">
+  <h1>Denpanyun <span>DB</span></h1>
 
-<table id="resultTable">
-<thead>
-<tr>
-<th>装備名</th>
-<th>効果</th>
-<th class="rarity-cell">☆</th>
-<th class="part-cell">部位</th>
-</tr>
-</thead>
-<tbody>
-<tr><td colspan="4" class="no-results">検索してください</td></tr>
-</tbody>
-</table>
+  <div class="search-card">
+    <div class="search-container">
+      <div class="form-group span-6">
+        <input type="text" id="searchName" placeholder="装備名で検索...">
+      </div>
+      <div class="form-group span-6">
+        <input type="text" id="searchEffect" placeholder="効果で検索 (例: むてきかんつう)">
+      </div>
+      
+      <div class="form-group span-3">
+        <select id="searchPart">
+          <option value="">部位: 全て</option>
+        </select>
+      </div>
+      
+      <div class="form-group span-3">
+        <select id="searchRarity">
+          <option value="">レアリティ: 全て</option>
+          <option value="1">★1</option>
+          <option value="2">★2</option>
+          <option value="3">★3</option>
+          <option value="4">★4</option>
+          <option value="5">★5</option>
+        </select>
+      </div>
+      
+      <div class="form-group span-2">
+        <select id="match">
+          <option value="partial">部分一致</option>
+          <option value="exact">完全一致</option>
+        </select>
+      </div>
+      
+      <button id="searchBtn" class="span-btn">検索</button>
+      <button id="clearBtn" class="span-btn">クリア</button>
+    </div>
+    <div class="options">
+      <label><input type="checkbox" id="showAllMode"> 検索前に一覧を表示する</label>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="resultTable">
+      <thead>
+      <tr>
+        <th width="30%">装備名</th>
+        <th width="40%">効果</th>
+        <th width="15%" style="text-align:center;">レアリティ</th>
+        <th width="15%" style="text-align:center;">部位</th>
+      </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="4" class="no-results">検索条件を入力してください</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <script>
 let items = [];
 let parts = [];
-const tbody = document.querySelector('#resultTable tbody');
+const itemsUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/items.json";
+const partsUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/equipmentparts.json";
 
+const loginOverlay = document.getElementById('login-overlay');
+const mainContent = document.getElementById('main-content');
+const passwordInput = document.getElementById('passwordInput');
+const loginBtn = document.getElementById('loginBtn');
+const loginError = document.getElementById('login-error');
+
+const tbody = document.querySelector('#resultTable tbody');
 const searchBtn = document.getElementById('searchBtn');
 const clearBtn = document.getElementById('clearBtn');
 const searchName = document.getElementById('searchName');
@@ -90,64 +419,101 @@ const searchRarity = document.getElementById('searchRarity');
 const matchSel = document.getElementById('match');
 const showAllMode = document.getElementById('showAllMode');
 
-const itemsUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/items.json";
-const partsUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/equipmentparts.json";
+const CORRECT_TOKEN = "cGFueXVuaGFtYWRh";
 
-Promise.all([
-  fetch(itemsUrl).then(res => res.json()),
-  fetch(partsUrl).then(res => res.json())
-])
-.then(([itemsData, partsData]) => {
-  parts = partsData;
-
-  // 部位 select に候補を追加
-  const uniqueParts = [...new Set(partsData.map(p => p.part))].sort();
-  uniqueParts.forEach(p => {
-    const option = document.createElement('option');
-    option.value = p;
-    option.textContent = p;
-    searchPart.appendChild(option);
-  });
-
-  items = itemsData.map(item => {
-    const partInfo = parts.find(p => p.hex === item.hex);
-    return { ...item, part: partInfo ? partInfo.part : "" };
-  });
-
-  if(showAllMode.checked) renderTable(items);
-})
-.catch(err => {
-  console.error("JSON読み込み失敗", err);
-  tbody.innerHTML = '<tr><td colspan="4" class="no-results">JSON読み込み失敗</td></tr>';
-});
-
-function normalizeStr(str){
-  return str ? str.toString().normalize("NFKC").trim() : '';
+function handleLogin() {
+    const inputPass = passwordInput.value.trim();
+    if (!inputPass) {
+        loginError.textContent = "パスワードを入力してください";
+        return;
+    }
+    try {
+        if (btoa(inputPass) === CORRECT_TOKEN) {
+            loginOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loginOverlay.style.display = 'none';
+                mainContent.style.display = 'block';
+                loadData();
+            }, 300);
+        } else {
+            loginError.textContent = "パスワードが間違っています";
+            passwordInput.value = "";
+            passwordInput.focus();
+        }
+    } catch (e) {
+        loginError.textContent = "パスワードが間違っています";
+    }
 }
 
-function matches(value, query, mode){
+loginBtn.addEventListener('click', handleLogin);
+passwordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleLogin();
+});
+
+function loadData() {
+    Promise.all([
+        fetch(itemsUrl).then(res => res.json()),
+        fetch(partsUrl).then(res => res.json())
+    ])
+    .then(([itemsData, partsData]) => {
+        parts = partsData;
+
+        const uniqueParts = [...new Set(partsData.map(p => p.part))].filter(Boolean).sort();
+        uniqueParts.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            option.textContent = p;
+            searchPart.appendChild(option);
+        });
+
+        items = itemsData.map(item => {
+            const partInfo = parts.find(p => p.hex === item.hex);
+            return { 
+                ...item, 
+                part: partInfo ? partInfo.part : "",
+                _searchName: normalizeStr(item.name),
+                _searchEffects: item.effect.map(e => normalizeStr(e))
+            };
+        });
+
+        if(showAllMode.checked) renderTable(items);
+    })
+    .catch(err => {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="4" class="no-results" style="color:#ef4444;">データの読み込みに失敗しました。<br>通信環境を確認してください。</td></tr>';
+    });
+}
+
+function normalizeStr(str){
+  if(!str) return '';
+  return str.toString().normalize("NFKC").trim().toLowerCase();
+}
+
+function matches(target, query, mode){
   if(!query) return false;
-  const v = normalizeStr(value);
-  query = normalizeStr(query);
-  if(mode === 'partial') return v.includes(query);
-  if(mode === 'exact') return v === query;
+  const q = normalizeStr(query);
+  if(mode === 'partial') return target.includes(q);
+  if(mode === 'exact') return target === q;
   return false;
 }
 
 function searchItems() {
-  if(!items || items.length===0){
-    alert("まだデータ読み込み中です。");
-    return;
-  }
+  if(!items || items.length===0) return;
+  
   const nameQuery = searchName.value;
   const effectQuery = searchEffect.value;
   const partQuery = searchPart.value;
   const rarityQuery = searchRarity.value;
   const matchMode = matchSel.value;
 
+  if(!nameQuery && !effectQuery && !partQuery && !rarityQuery && !showAllMode.checked) {
+      tbody.innerHTML = '<tr><td colspan="4" class="no-results">条件を入力して検索してください</td></tr>';
+      return;
+  }
+
   const filtered = items.filter(item => {
-    const nameMatch = !nameQuery || matches(item.name, nameQuery, matchMode);
-    const effectMatch = !effectQuery || item.effect.some(e => matches(e, effectQuery, matchMode));
+    const nameMatch = !nameQuery || matches(item._searchName, nameQuery, matchMode);
+    const effectMatch = !effectQuery || item._searchEffects.some(e => matches(e, effectQuery, matchMode));
     const partMatch = !partQuery || item.part === partQuery;
     const rarityMatch = !rarityQuery || item.rarity == rarityQuery;
     return nameMatch && effectMatch && rarityMatch && partMatch;
@@ -158,43 +524,75 @@ function searchItems() {
 
 function renderTable(data){
   tbody.innerHTML = '';
-  if(data.length===0){
+  if(data.length === 0){
     tbody.innerHTML = '<tr><td colspan="4" class="no-results">該当する装備はありません</td></tr>';
     return;
   }
-  data.forEach(item=>{
+  
+  const fragment = document.createDocumentFragment();
+  
+  data.forEach((item, index) => {
     const tr = document.createElement('tr');
+    
+    tr.setAttribute('data-rarity', item.rarity || '1');
+
+    if(index < 20) {
+        tr.style.animationDelay = (index * 0.03) + 's';
+        tr.style.animationName = 'fadeInCard';
+        tr.style.animationDuration = '0.3s';
+        tr.style.animationFillMode = 'backwards';
+    }
+
+    const effectHtml = item.effect.join('<br>');
+    
+    let rarityClass = 'r-bronze';
+    const r = parseInt(item.rarity);
+    if(r >= 3 && r <= 4) rarityClass = 'r-silver';
+    if(r === 5) rarityClass = 'r-gold';
+
+    const rarityText = item.rarity ? `★${item.rarity}` : '-';
+    
     tr.innerHTML = `
-      <td>${item.name}</td>
-      <td class="effect-cell">${item.effect.join("<br>")}</td>
-      <td class="rarity-cell">${item.rarity}</td>
-      <td class="part-cell">${item.part || "-"}</td>
+      <td>
+        <div class="item-name">
+            ${item.name || '(名称不明)'}
+            <div class="mobile-meta">
+                <span class="badge ${rarityClass}">${rarityText}</span>
+                <span class="mobile-part">${item.part || '-'}</span>
+            </div>
+        </div>
+      </td>
+      <td class="effect-cell">${effectHtml}</td>
+      <td class="rarity-cell"><span class="badge ${rarityClass}">${rarityText}</span></td>
+      <td class="part-cell">${item.part || '-'}</td>
     `;
-    tbody.appendChild(tr);
+    fragment.appendChild(tr);
   });
+  
+  tbody.appendChild(fragment);
 }
 
 searchBtn.addEventListener('click', searchItems);
+[searchName, searchEffect].forEach(input => {
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchItems(); });
+});
 
-clearBtn.addEventListener('click', ()=>{
+clearBtn.addEventListener('click', () => {
   searchName.value = '';
   searchEffect.value = '';
   searchPart.value = '';
   searchRarity.value = '';
-  tbody.innerHTML='<tr><td colspan="4" class="no-results">検索してください</td></tr>';
+  if(showAllMode.checked) renderTable(items);
+  else tbody.innerHTML = '<tr><td colspan="4" class="no-results">条件を入力して検索してください</td></tr>';
 });
 
-showAllMode.addEventListener('change', ()=>{
-  if(showAllMode.checked) renderTable(items);
-  else tbody.innerHTML='<tr><td colspan="4" class="no-results">検索してください</td></tr>';
+showAllMode.addEventListener('change', () => {
+  if(showAllMode.checked && items.length > 0) renderTable(items);
+  else if(!searchName.value && !searchEffect.value && !searchPart.value) 
+    tbody.innerHTML = '<tr><td colspan="4" class="no-results">条件を入力して検索してください</td></tr>';
 });
+
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
