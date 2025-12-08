@@ -3,40 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>装備検索ツール</title>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<title>Denpanyun DB</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
 <style>
   * {
     box-sizing: border-box;
   }
 
   :root {
-    --primary-color: #0ea5e9;
-    --primary-dark: #0284c7;
-    --primary-light: #e0f2fe;
-    --accent-color: #38bdf8;
+    --bg-body: #f0f7ff;
+    --bg-surface: #ffffff;
+    --bg-header: #e0f2fe;
     
-    --bg-gradient: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);
-    --card-bg: #ffffff;
-    
-    --text-main: #334155;
+    --primary: #0284c7;
+    --primary-hover: #0369a1;
+    --accent: #0ea5e9;
+    --accent-set: #7c3aed;
+    --accent-set-bg: #f5f3ff;
+
+    --text-main: #1e293b;
     --text-sub: #64748b;
-    --border-color: #bae6fd;
+    --border: #cbd5e1;
     
     --radius: 8px;
-    --shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06);
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-float: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
 
-    --r-bronze: linear-gradient(135deg, #d97706, #b45309);
-    --r-silver: linear-gradient(135deg, #94a3b8, #64748b);
-    --r-gold:   linear-gradient(135deg, #eab308, #ca8a04);
+    --r-bronze: #92400e;
+    --r-bg-bronze: #fef3c7;
+    --r-silver: #475569;
+    --r-bg-silver: #f1f5f9;
+    --r-gold: #b45309;
+    --r-bg-gold: #fffbeb;
   }
 
   body {
-    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    
-    background: var(--bg-gradient);
+    font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+    background-color: var(--bg-body);
+    background-image: radial-gradient(#bae6fd 1px, transparent 1px);
+    background-size: 24px 24px;
     color: var(--text-main);
     margin: 0;
     padding: 0;
@@ -44,291 +49,459 @@
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
   }
 
   #login-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(240, 249, 255, 0.95);
+    background: rgba(240, 247, 255, 0.95);
     z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
   }
   
   .login-box {
-    background: var(--card-bg);
+    background: var(--bg-surface);
     padding: 40px;
     border-radius: var(--radius);
-    box-shadow: 0 20px 25px -5px rgba(14, 165, 233, 0.15);
+    box-shadow: var(--shadow-float);
     text-align: center;
     width: 90%;
-    max-width: 360px;
-    border: 1px solid var(--border-color);
+    max-width: 320px;
+    border: 1px solid var(--border);
   }
 
   .login-box h2 {
-    margin: 0 0 15px;
-    color: var(--primary-dark);
-    font-size: 1.5rem;
-    font-weight: bold;
+    margin: 0 0 24px;
+    color: var(--primary);
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
   }
 
   #main-content {
     display: none;
     width: 100%;
     max-width: 1000px;
-    padding: 30px 20px;
-    animation: slideIn 0.3s ease-out;
+    padding: 40px 20px 100px;
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   h1 {
     text-align: center;
-    color: var(--primary-dark);
+    color: var(--text-main);
     font-weight: 800;
-    font-size: 2.2rem;
-    margin: 10px 0 30px;
-    letter-spacing: 0.05em;
+    font-size: 2rem;
+    margin: 0 0 32px;
+    letter-spacing: 0.02em;
   }
   
-  h1 span { color: var(--accent-color); }
+  h1 span {
+    color: var(--primary);
+    position: relative;
+    display: inline-block;
+  }
+  
+  h1 span::after {
+    content: '';
+    position: absolute;
+    top: -5px; right: -10px;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2);
+  }
 
   .search-card {
-    background: var(--card-bg);
-    padding: 30px;
+    background: var(--bg-surface);
+    padding: 32px;
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-card);
     border: 1px solid white;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
   }
 
   .search-container {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    gap: 15px;
+    gap: 16px;
   }
 
   .span-6 { grid-column: span 6; }
-  .span-3 { grid-column: span 3; }
-  .span-2 { grid-column: span 2; }
+  .span-4 { grid-column: span 4; }
   .span-btn { grid-column: span 2; }
 
   @media (max-width: 768px) {
-    .span-6, .span-3, .span-2, .span-btn { grid-column: span 12; }
+    .span-6, .span-4, .span-btn { grid-column: span 12; }
   }
 
   input, select {
     width: 100%;
-    padding: 12px 15px;
+    padding: 12px 16px;
     font-size: 15px;
     border-radius: 6px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--border);
     background: #f8fafc;
     color: var(--text-main);
-    transition: border-color 0.2s;
+    transition: all 0.2s;
     font-family: inherit;
+    font-weight: 500;
   }
 
   input:focus, select:focus {
-    border-color: var(--primary-color);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
     outline: none;
   }
+  
+  input::placeholder { color: #94a3b8; font-weight: 400; }
 
   button {
     width: 100%;
     padding: 12px;
-    font-size: 15px;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 700;
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
     letter-spacing: 0.05em;
   }
 
   #searchBtn, #loginBtn {
-    background: var(--primary-color);
+    background-color: var(--primary);
     color: white;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
   }
   #searchBtn:hover, #loginBtn:hover {
-    background: var(--primary-dark);
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
   }
 
   #clearBtn {
-    background: white;
+    background-color: #fff;
     color: #ef4444;
-    border: 1px solid #ef4444;
+    border: 1px solid #fee2e2;
   }
   #clearBtn:hover {
-    background: #fef2f2;
+    background-color: #fef2f2;
+    border-color: #fca5a5;
   }
 
   .options {
-    margin-top: 15px;
-    text-align: right;
-    font-size: 0.9rem;
-    color: var(--text-sub);
-  }
-  .options label { cursor: pointer; display: inline-flex; align-items: center; }
-  .options input { width: auto; margin-right: 6px; }
-
-  .table-container {
-    background: var(--card-bg);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    border: 1px solid white;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 700px;
-  }
-
-  thead {
-    background: var(--primary-light);
-    border-bottom: 2px solid #bae6fd;
-  }
-
-  th {
-    padding: 15px 20px;
-    text-align: left;
-    font-weight: 700;
-    color: var(--primary-dark);
-    font-size: 0.95rem;
-  }
-
-  td {
-    padding: 15px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: top;
-    color: var(--text-main);
-    font-size: 0.95rem;
-  }
-
-  tr:hover { background-color: #f8fafc; }
-  tr:last-child td { border-bottom: none; }
-
-  .item-name { 
-    font-weight: 700; 
-    font-size: 1rem; 
-    color: var(--primary-dark); 
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
   }
   
-  .effect-cell { 
-    line-height: 1.6; 
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    background-color: #cbd5e1;
+    border-radius: 13px;
+    transition: background-color 0.3s;
+    margin-right: 12px;
+  }
+  
+  .toggle-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  
+  .toggle-checkbox:checked + .toggle-switch {
+    background-color: var(--accent-set);
+  }
+  
+  .toggle-checkbox:checked + .toggle-switch .toggle-knob {
+    transform: translateX(22px);
+  }
+  
+  .toggle-label {
+    font-weight: 700;
+    color: var(--text-sub);
+    font-size: 0.95rem;
+    transition: color 0.3s;
+  }
+  
+  .toggle-checkbox:checked ~ .toggle-label {
+    color: var(--accent-set);
+  }
+  .toggle-checkbox { display: none; }
+
+  .result-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .normal-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--bg-surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .normal-table thead {
+    background-color: #f1f5f9;
+  }
+
+  .normal-table th {
+    padding: 16px 24px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--text-sub);
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .normal-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    vertical-align: middle;
+  }
+  .normal-table tr:last-child td { border-bottom: none; }
+  .normal-table tr:hover { background-color: #f8fafc; }
+
+  .item-name-text {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* コード覗き浜田さん、こんにちは */
+  .item-name-text .badge { display: none; }
+  
+  .mobile-only-info {
+    display: none;
+  }
+
+  .set-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid transparent;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .set-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-float);
+    border-color: #e2e8f0;
+  }
+
+  .set-card-header {
+    background: linear-gradient(to right, var(--accent-set), #8b5cf6);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+  }
+
+  .set-effect-label {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    font-weight: 700;
+    margin-right: 12px;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .set-effect-content {
+    font-size: 1.1rem;
+    font-weight: 700;
+    flex-grow: 1;
+    text-align: right;
+  }
+
+  .set-card-body {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    background-color: var(--accent-set-bg);
+  }
+
+  .set-component {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .sc-part {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-sub);
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 10px;
+    width: 50px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .sc-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sc-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    margin-bottom: 2px;
+  }
+
+  .sc-effect {
+    font-size: 0.8rem;
+    color: var(--text-sub);
   }
 
   .badge {
     display: inline-block;
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 0.75rem;
     font-weight: 700;
-    color: white;
-    min-width: 50px;
-    text-align: center;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    border: 1px solid transparent;
+    white-space: nowrap;
   }
 
-  .r-bronze { background: var(--r-bronze); }
-  .r-silver { background: var(--r-silver); }
-  .r-gold   { background: var(--r-gold); }
-
-  .mobile-meta { display: none; }
+  .r-bronze { color: var(--r-bronze); background: var(--r-bg-bronze); border-color: #fcd34d; }
+  .r-silver { color: var(--r-silver); background: var(--r-bg-silver); border-color: #e2e8f0; }
+  .r-gold   { color: var(--r-gold);   background: var(--r-bg-gold);   border-color: #fde047; }
 
   .no-results {
     text-align: center;
     padding: 60px;
     color: var(--text-sub);
     font-weight: 500;
+    font-size: 1rem;
+    background: var(--bg-surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
   }
 
   #login-error {
     color: #ef4444;
-    margin-top: 15px;
-    font-weight: bold;
+    margin-top: 16px;
+    font-weight: 700;
     min-height: 1.2em;
     font-size: 0.9rem;
   }
 
-  @media (max-width: 700px) {
-    #main-content { padding: 15px 10px; }
-    .search-card { padding: 20px 15px; }
+  @media (max-width: 768px) {
+    #main-content { padding: 20px 10px 80px; }
+    .search-card { padding: 20px; }
     
-    table { min-width: auto; }
-
-    table, thead, tbody, th, td, tr { display: block; }
-    thead { display: none; }
-    
-    .table-container { background: transparent; box-shadow: none; border: none; }
-    
-    tr {
-      background: var(--card-bg);
-      margin-bottom: 15px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      border: 1px solid #e2e8f0;
-      padding: 15px;
-      position: relative;
-      overflow: hidden;
-      animation: fadeInCard 0.3s ease backwards;
-      width: 100%;
-    }
-
-    tr::before { display: none; }
-
-    td {
-      padding: 0;
-      border: none;
-      display: block;
-    }
-
-    .item-name {
-      font-size: 1.15rem;
-      margin-bottom: 8px;
-      display: block;
-      color: #0f172a;
-    }
-
-    .mobile-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
+    .mobile-only-info {
+        display: block;
+        margin-top: 6px;
     }
     
+    .mobile-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
     .mobile-part-badge {
-      font-size: 0.8rem;
-      color: #475569;
-      background: #f1f5f9;
-      padding: 3px 10px;
-      border-radius: 4px;
-      font-weight: 700;
-      border: 1px solid #cbd5e1;
-      display: inline-block;
+        font-size: 0.75rem;
+        color: var(--text-sub);
+        background: #f1f5f9;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        border: 1px solid var(--border);
     }
 
-    .effect-cell {
-        background: #f8fafc;
-        padding: 10px 12px;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        color: #334155;
-        border: 1px dashed #cbd5e1;
+    .item-name-text .badge { display: inline-block; margin-left: 0; }
+
+    .set-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .set-effect-content { text-align: left; }
+    .set-card-body { grid-template-columns: 1fr; padding: 16px; }
+
+    .normal-table, .normal-table tbody, .normal-table tr, .normal-table td {
+        display: block;
+        width: 100%;
+    }
+    .normal-table thead { display: none; }
+    
+    .normal-table tr {
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+    .normal-table tr:last-child { margin-bottom: 0; border: none; }
+    
+    .normal-table td {
+        padding: 8px 16px;
+        border: none;
+    }
+    .normal-table td:first-child {
+        padding-top: 16px;
+    }
+    .normal-table td:last-child {
+        padding-bottom: 16px;
     }
 
-    td.rarity-cell, td.part-cell { display: none; }
+    .normal-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: var(--text-sub);
+        display: block;
+        margin-bottom: 4px;
+    }
+    .normal-table td:first-child::before { display: none; }
+    
+    .normal-table td.pc-only { display: none; }
   }
 
-  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes fadeInCard { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 </style>
 </head>
@@ -336,10 +509,10 @@
 
 <div id="login-overlay">
   <div class="login-box">
-    <h2>Access</h2>
+    <h2>ACCESS</h2>
     <p style="color:#64748b; font-size:0.9rem; margin-bottom:20px;">パスワードを入力してください</p>
     <input type="password" id="passwordInput" placeholder="Password">
-    <button id="loginBtn">ログイン</button>
+    <button id="loginBtn" style="margin-top:20px;">ログイン</button>
     <div id="login-error"></div>
   </div>
 </div>
@@ -353,16 +526,16 @@
         <input type="text" id="searchName" placeholder="装備名で検索...">
       </div>
       <div class="form-group span-6">
-        <input type="text" id="searchEffect" placeholder="効果で検索 (例: むてきかんつう)">
+        <input type="text" id="searchEffect" placeholder="効果で検索 (例: むてき)">
       </div>
       
-      <div class="form-group span-3">
+      <div class="form-group span-4">
         <select id="searchPart">
           <option value="">部位: 全て</option>
         </select>
       </div>
       
-      <div class="form-group span-3">
+      <div class="form-group span-4">
         <select id="searchRarity">
           <option value="">レアリティ: 全て</option>
           <option value="1">★1</option>
@@ -373,43 +546,35 @@
         </select>
       </div>
       
-      <div class="form-group span-2">
-        <select id="match">
-          <option value="partial">部分一致</option>
-          <option value="exact">完全一致</option>
-        </select>
-      </div>
-      
       <button id="searchBtn" class="span-btn">検索</button>
       <button id="clearBtn" class="span-btn">クリア</button>
     </div>
+    
     <div class="options">
-      <label><input type="checkbox" id="showAllMode"> 検索前に一覧を表示する</label>
+      <label class="toggle-container">
+        <input type="checkbox" id="setFilter" class="toggle-checkbox">
+        <div class="toggle-switch"><div class="toggle-knob"></div></div>
+        <span class="toggle-label">セット装備のみ表示</span>
+      </label>
     </div>
   </div>
 
-  <div class="table-container">
-    <table id="resultTable">
-      <thead>
-      <tr>
-        <th width="30%">装備名</th>
-        <th width="40%">効果</th>
-        <th width="15%" style="text-align:center;">レアリティ</th>
-        <th width="15%" style="text-align:center;">部位</th>
-      </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="4" class="no-results">検索条件を入力してください</td></tr>
-      </tbody>
-    </table>
+  <div id="resultContainer" class="result-container">
+    <div class="no-results">条件を入力して検索してください</div>
   </div>
 </div>
 
 <script>
 let items = [];
 let parts = [];
+let sets = [];
+let itemsMap = {}; 
+
 const itemsUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/items.json";
 const partsUrl = "https://raw.githubusercontent.com/Yu08083/soubidb/main/equipmentparts.json";
+const setsUrl  = "https://raw.githubusercontent.com/Yu08083/soubidb/refs/heads/main/coordinateV4.txt";
+
+const partsOrder = ['ふく', 'かお', 'くび', 'うで', 'せなか', 'あし'];
 
 const loginOverlay = document.getElementById('login-overlay');
 const mainContent = document.getElementById('main-content');
@@ -417,15 +582,14 @@ const passwordInput = document.getElementById('passwordInput');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('login-error');
 
-const tbody = document.querySelector('#resultTable tbody');
+const resultContainer = document.getElementById('resultContainer');
 const searchBtn = document.getElementById('searchBtn');
 const clearBtn = document.getElementById('clearBtn');
 const searchName = document.getElementById('searchName');
 const searchEffect = document.getElementById('searchEffect');
 const searchPart = document.getElementById('searchPart');
 const searchRarity = document.getElementById('searchRarity');
-const matchSel = document.getElementById('match');
-const showAllMode = document.getElementById('showAllMode');
+const setFilter = document.getElementById('setFilter');
 
 const CORRECT_TOKEN = "cGFueXVuaGFtYWRh";
 
@@ -442,7 +606,7 @@ function handleLogin() {
                 loginOverlay.style.display = 'none';
                 mainContent.style.display = 'block';
                 loadData();
-            }, 300);
+            }, 200);
         } else {
             loginError.textContent = "パスワードが間違っています";
             passwordInput.value = "";
@@ -461,9 +625,10 @@ passwordInput.addEventListener('keypress', (e) => {
 function loadData() {
     Promise.all([
         fetch(itemsUrl).then(res => res.json()),
-        fetch(partsUrl).then(res => res.json())
+        fetch(partsUrl).then(res => res.json()),
+        fetch(setsUrl).then(res => res.text())
     ])
-    .then(([itemsData, partsData]) => {
+    .then(([itemsData, partsData, setsText]) => {
         parts = partsData;
 
         const uniqueParts = [...new Set(partsData.map(p => p.part))].filter(Boolean).sort();
@@ -476,19 +641,24 @@ function loadData() {
 
         items = itemsData.map(item => {
             const partInfo = parts.find(p => p.hex === item.hex);
-            return { 
+            const mergedItem = { 
                 ...item, 
                 part: partInfo ? partInfo.part : "",
                 _searchName: normalizeStr(item.name),
                 _searchEffects: item.effect.map(e => normalizeStr(e))
             };
+            
+            if(item.name) {
+                itemsMap[normalizeStr(item.name)] = mergedItem;
+            }
+            return mergedItem;
         });
 
-        if(showAllMode.checked) renderTable(items);
+        parseSets(setsText);
     })
     .catch(err => {
         console.error(err);
-        tbody.innerHTML = '<tr><td colspan="4" class="no-results" style="color:#ef4444;">データの読み込みに失敗しました。<br>通信環境を確認してください。</td></tr>';
+        resultContainer.innerHTML = '<div class="no-results" style="color:#ef4444;">データの読み込みに失敗しました</div>';
     });
 }
 
@@ -497,105 +667,236 @@ function normalizeStr(str){
   return str.toString().normalize("NFKC").trim().toLowerCase();
 }
 
-function matches(target, query, mode){
+function matches(target, query){
   if(!query) return false;
-  const q = normalizeStr(query);
-  if(mode === 'partial') return target.includes(q);
-  if(mode === 'exact') return target === q;
-  return false;
+  return target.includes(query);
+}
+
+function parseSets(text) {
+    const lines = text.split('\n');
+    sets = [];
+    lines.forEach(line => {
+        if (!line.trim()) return;
+        const firstComma = line.indexOf(',');
+        const lastBracket = line.lastIndexOf(']');
+        if (firstComma === -1 || lastBracket === -1) return;
+
+        const itemsPart = line.substring(firstComma + 1, lastBracket + 1);
+        const effectPart = line.substring(lastBracket + 2).replace(/^,/, '').trim();
+        const itemNames = itemsPart.replace(/[\[\]']/g, "").split(",").map(s => s.trim()).filter(s => s);
+
+        if (itemNames.length >= 4) {
+            const detailItems = itemNames.map(name => {
+                const normalizedKey = normalizeStr(name);
+                const itemData = itemsMap[normalizedKey];
+                return itemData ? itemData : { name: name, part: '', rarity: '', effect: [] };
+            });
+
+            detailItems.sort((a, b) => {
+                const pA = partsOrder.indexOf(a.part);
+                const pB = partsOrder.indexOf(b.part);
+                const idxA = pA === -1 ? 99 : pA;
+                const idxB = pB === -1 ? 99 : pB;
+                return idxA - idxB;
+            });
+
+            sets.push({
+                items: detailItems,
+                effect: effectPart,
+                _searchItems: itemNames.map(n => normalizeStr(n)),
+                _searchEffect: normalizeStr(effectPart)
+            });
+        }
+    });
 }
 
 function searchItems() {
-  if(!items || items.length===0) return;
-  
-  const nameQuery = searchName.value;
-  const effectQuery = searchEffect.value;
-  const partQuery = searchPart.value;
-  const rarityQuery = searchRarity.value;
-  const matchMode = matchSel.value;
-
-  if(!nameQuery && !effectQuery && !partQuery && !rarityQuery && !showAllMode.checked) {
-      tbody.innerHTML = '<tr><td colspan="4" class="no-results">条件を入力して検索してください</td></tr>';
-      return;
-  }
-
-  const filtered = items.filter(item => {
-    const nameMatch = !nameQuery || matches(item._searchName, nameQuery, matchMode);
-    const effectMatch = !effectQuery || item._searchEffects.some(e => matches(e, effectQuery, matchMode));
-    const partMatch = !partQuery || item.part === partQuery;
-    const rarityMatch = !rarityQuery || item.rarity == rarityQuery;
-    return nameMatch && effectMatch && rarityMatch && partMatch;
-  });
-
-  renderTable(filtered);
-}
-
-function renderTable(data){
-  tbody.innerHTML = '';
-  if(data.length === 0){
-    tbody.innerHTML = '<tr><td colspan="4" class="no-results">該当する装備はありません</td></tr>';
-    return;
-  }
-  
-  const fragment = document.createDocumentFragment();
-  
-  data.forEach((item, index) => {
-    const tr = document.createElement('tr');
+    if(!items.length) return;
     
-    tr.setAttribute('data-rarity', item.rarity || '1');
-
-    if(index < 20) {
-        tr.style.animationDelay = (index * 0.03) + 's';
-        tr.style.animationName = 'fadeInCard';
-        tr.style.animationDuration = '0.3s';
-        tr.style.animationFillMode = 'backwards';
+    if (setFilter.checked) {
+        searchPart.disabled = true;
+        searchRarity.disabled = true;
+        searchPart.parentElement.style.opacity = '0.5';
+        searchRarity.parentElement.style.opacity = '0.5';
+    } else {
+        searchPart.disabled = false;
+        searchRarity.disabled = false;
+        searchPart.parentElement.style.opacity = '1';
+        searchRarity.parentElement.style.opacity = '1';
     }
 
-    const effectHtml = item.effect.join('<br>');
+    const nameQuery = normalizeStr(searchName.value);
+    const effectQuery = normalizeStr(searchEffect.value);
     
-    let rarityClass = 'r-bronze';
-    const r = parseInt(item.rarity);
-    if(r >= 3 && r <= 4) rarityClass = 'r-silver';
-    if(r === 5) rarityClass = 'r-gold';
+    if (setFilter.checked) {
+        const filteredSets = sets.filter(set => {
+            const nameMatch = !nameQuery || set._searchItems.some(n => matches(n, nameQuery));
+            const effectMatch = !effectQuery || 
+                                matches(set._searchEffect, effectQuery) ||
+                                set.items.some(i => i.effect && i.effect.some(e => matches(normalizeStr(e), effectQuery)));
+            
+            return nameMatch && effectMatch;
+        });
+        renderSets(filteredSets);
+    } 
+    else {
+        const partQuery = searchPart.value;
+        const rarityQuery = searchRarity.value;
 
-    const rarityText = item.rarity ? `★${item.rarity}` : '-';
+        const filteredItems = items.filter(item => {
+            const nameMatch = !nameQuery || matches(item._searchName, nameQuery);
+            const effectMatch = !effectQuery || item._searchEffects.some(e => matches(e, effectQuery));
+            const partMatch = !partQuery || item.part === partQuery;
+            const rarityMatch = !rarityQuery || item.rarity == rarityQuery;
+            return nameMatch && effectMatch && rarityMatch && partMatch;
+        });
+        renderItems(filteredItems);
+    }
+}
+
+function renderSets(data) {
+    resultContainer.innerHTML = '';
+    if(data.length === 0){
+        resultContainer.innerHTML = '<div class="no-results">該当するセット装備はありません</div>';
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    data.forEach((set, index) => {
+        const card = document.createElement('div');
+        card.className = 'set-card';
+        if(index < 10) card.style.animation = `fadeIn 0.3s ease backwards ${index * 0.05}s`;
+
+        const itemListHtml = set.items.map(item => {
+            const rarityText = item.rarity ? `★${item.rarity}` : '';
+            let rarityClass = 'r-bronze';
+            const r = parseInt(item.rarity);
+            if(r >= 3 && r <= 4) rarityClass = 'r-silver';
+            if(r === 5) rarityClass = 'r-gold';
+            const effectText = item.effect && item.effect.length > 0 ? item.effect.join(', ') : '';
+
+            return `
+                <div class="set-component">
+                    <span class="sc-part">${item.part || '??'}</span>
+                    <div class="sc-info">
+                        <div class="sc-name">
+                            ${item.name} 
+                            ${item.rarity ? `<span class="badge ${rarityClass}" style="margin-left:6px; font-size:0.65rem;">${rarityText}</span>` : ''}
+                        </div>
+                        ${effectText ? `<div class="sc-effect">${effectText}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        card.innerHTML = `
+            <div class="set-card-header">
+                <div style="display:flex; align-items:center;">
+                    <span class="set-effect-label">セット効果</span>
+                </div>
+                <div class="set-effect-content">${set.effect}</div>
+            </div>
+            <div class="set-card-body">
+                ${itemListHtml}
+            </div>
+        `;
+        fragment.appendChild(card);
+    });
+    resultContainer.appendChild(fragment);
+}
+
+function renderItems(data) {
+    resultContainer.innerHTML = '';
+    if(data.length === 0){
+        resultContainer.innerHTML = '<div class="no-results">該当する装備はありません</div>';
+        return;
+    }
     
-    tr.innerHTML = `
-      <td>
-        <div class="item-name">${item.name || '(名称不明)'}</div>
-        <div class="mobile-meta">
-            <span class="badge ${rarityClass}">${rarityText}</span>
-            <span class="mobile-part-badge">${item.part || '部位なし'}</span>
-        </div>
-      </td>
-      <td class="effect-cell">${effectHtml}</td>
-      <td class="rarity-cell"><span class="badge ${rarityClass}">${rarityText}</span></td>
-      <td class="part-cell">${item.part || '-'}</td>
+    const table = document.createElement('table');
+    table.className = 'normal-table';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th width="35%">装備名</th>
+                <th width="40%">効果</th>
+                <th width="15%">レアリティ</th>
+                <th width="10%">部位</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
     `;
-    fragment.appendChild(tr);
-  });
-  
-  tbody.appendChild(fragment);
+    const tbody = table.querySelector('tbody');
+
+    data.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-mode', 'normal');
+        if(index < 20) tr.style.animation = `fadeIn 0.3s ease backwards ${index * 0.03}s`;
+
+        const effectHtml = item.effect.join('<br>');
+        
+        let rarityClass = 'r-bronze';
+        const r = parseInt(item.rarity);
+        if(r >= 3 && r <= 4) rarityClass = 'r-silver';
+        if(r === 5) rarityClass = 'r-gold';
+        const rarityText = item.rarity ? `★${item.rarity}` : '-';
+        
+        tr.innerHTML = `
+          <td>
+            <div class="item-name-text">
+                ${item.name || '(名称不明)'}
+                <span class="badge ${rarityClass} mobile-only-info">${rarityText}</span>
+            </div>
+            
+            <div class="mobile-only-info">
+                <div class="mobile-wrapper">
+                    <span class="mobile-part-badge">${item.part || '部位なし'}</span>
+                </div>
+            </div>
+          </td>
+          <td class="effect-cell" data-label="効果">${effectHtml}</td>
+          
+          <td class="pc-only"><span class="badge ${rarityClass}">${rarityText}</span></td>
+          <td class="pc-only">${item.part || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    resultContainer.appendChild(table);
 }
 
 searchBtn.addEventListener('click', searchItems);
-[searchName, searchEffect].forEach(input => {
-    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchItems(); });
-});
 
 clearBtn.addEventListener('click', () => {
   searchName.value = '';
   searchEffect.value = '';
   searchPart.value = '';
   searchRarity.value = '';
-  if(showAllMode.checked) renderTable(items);
-  else tbody.innerHTML = '<tr><td colspan="4" class="no-results">条件を入力して検索してください</td></tr>';
+  setFilter.checked = false;
+  searchPart.disabled = false;
+  searchRarity.disabled = false;
+  searchPart.parentElement.style.opacity = '1';
+  searchRarity.parentElement.style.opacity = '1';
+  
+  resultContainer.innerHTML = '<div class="no-results">条件を入力して検索してください</div>';
 });
 
-showAllMode.addEventListener('change', () => {
-  if(showAllMode.checked && items.length > 0) renderTable(items);
-  else if(!searchName.value && !searchEffect.value && !searchPart.value) 
-    tbody.innerHTML = '<tr><td colspan="4" class="no-results">条件を入力して検索してください</td></tr>';
+[searchName, searchEffect].forEach(input => {
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchItems(); });
+});
+
+setFilter.addEventListener('change', () => {
+    if (setFilter.checked) {
+        searchPart.disabled = true;
+        searchRarity.disabled = true;
+        searchPart.parentElement.style.opacity = '0.5';
+        searchRarity.parentElement.style.opacity = '0.5';
+    } else {
+        searchPart.disabled = false;
+        searchRarity.disabled = false;
+        searchPart.parentElement.style.opacity = '1';
+        searchRarity.parentElement.style.opacity = '1';
+    }
+    resultContainer.innerHTML = '<div class="no-results">条件を入力して検索してください</div>';
 });
 
 </script>
