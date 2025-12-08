@@ -6,6 +6,10 @@
 <title>装備検索ツール</title>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
 <style>
+  * {
+    box-sizing: border-box;
+  }
+
   :root {
     --primary-color: #0ea5e9;
     --primary-dark: #0284c7;
@@ -77,7 +81,6 @@
     width: 100%;
     max-width: 1000px;
     padding: 30px 20px;
-    box-sizing: border-box;
     animation: slideIn 0.3s ease-out;
   }
 
@@ -124,7 +127,6 @@
     border: 1px solid #cbd5e1;
     background: #f8fafc;
     color: var(--text-main);
-    box-sizing: border-box;
     transition: border-color 0.2s;
     font-family: inherit;
   }
@@ -274,17 +276,10 @@
       position: relative;
       overflow: hidden;
       animation: fadeInCard 0.3s ease backwards;
+      width: 100%;
     }
 
-    tr::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 5px;
-    }
-    tr[data-rarity="1"]::before, tr[data-rarity="2"]::before { background: var(--r-bronze); }
-    tr[data-rarity="3"]::before, tr[data-rarity="4"]::before { background: var(--r-silver); }
-    tr[data-rarity="5"]::before { background: var(--r-gold); }
+    tr::before { display: none; }
 
     td {
       padding: 0;
